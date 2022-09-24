@@ -1,14 +1,15 @@
 name: Push kubefate service image to DockerHub
 
 on:
-  push:
-    # Publish `master` as Docker `latest` image.
-    branches:
-      - master
+  workflow_dispatch:
+  # push:
+  #   # Publish `master` as Docker `latest` image.
+  #   branches:
+  #     - master
 
-    # Publish `v1.2.3` tags as releases.
-    tags:
-      - v*
+  #   # Publish `v1.2.3` tags as releases.
+  #   tags:
+  #     - v*
 
 jobs:
   # no test is required

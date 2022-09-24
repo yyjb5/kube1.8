@@ -1,9 +1,10 @@
 name: helm-lint
 
 on: 
-  pull_request:
-    paths:
-    - "helm-charts/**"
+  workflow_dispatch:
+  # pull_request:
+  #   paths:
+  #   - "helm-charts/**"
 
 jobs:
   helm-lint:
