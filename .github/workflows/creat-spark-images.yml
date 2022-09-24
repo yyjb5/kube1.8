@@ -12,20 +12,20 @@ jobs:
           # 使用Dockerfile构建镜像
           
           # spark
-          docker build --build-arg SOURCE_PREFIX=federatedai --build-arg SOURCE_TAG=1.8.0-release -t zssd/spark-base:2.4.8 docker-build/spark/base
-          echo "Image: "zssd/spark-base:2.4.8" Build Successful"
+          docker build --build-arg SOURCE_PREFIX=federatedai --build-arg SOURCE_TAG=1.8.0-release -t zsszai/spark-base:2.4.8 docker-build/spark/base
+          echo "Image: "zsszai/spark-base:2.4.8" Build Successful"
 
-          docker build --build-arg SOURCE_PREFIX=federatedai --build-arg SOURCE_TAG=1.8.0-release -t zssd/spark-master:2.4.8 docker-build/spark/master
-          echo "Image: "zssd/spark-master:2.4.8" Build Successful"
-          docker build --build-arg SOURCE_PREFIX=federatedai --build-arg SOURCE_TAG=1.8.0-release -t zssd/spark-worker:2.4.8 docker-build/spark/worker
-          echo "Image: "zssd/spark-worker:2.4.8" Build Successful"
+          docker build --build-arg SOURCE_PREFIX=zsszai --build-arg SOURCE_TAG=2.4.8 -t zsszai/spark-master:2.4.8 docker-build/spark/master
+          echo "Image: "zsszai/spark-master:2.4.8" Build Successful"
+          docker build --build-arg SOURCE_PREFIX=zsszai --build-arg SOURCE_TAG=2.4.8 -t zsszai/spark-worker:2.4.8 docker-build/spark/worker
+          echo "Image: "zsszai/spark-worker:2.4.8" Build Successful"
       - uses: actions/checkout@v2
       - name: Export the Docker Spark image
         working-directory: ./
         run:  |
-          docker save -o spark-base-2.4.8.tar zssd/spark-base:2.4.8
-          docker save -o spark-master-2.4.8.tar zssd/spark-master:2.4.8
-          docker save -o spark-worker-2.4.8.tar zssd/spark-worker:2.4.8
+          docker save -o spark-base-2.4.8.tar zsszai/spark-base:2.4.8
+          docker save -o spark-master-2.4.8.tar zsszai/spark-master:2.4.8
+          docker save -o spark-worker-2.4.8.tar zsszai/spark-worker:2.4.8
           
       - name: spark-base out
         # id: out_report

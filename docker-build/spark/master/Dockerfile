@@ -1,5 +1,5 @@
-ARG SOURCE_PREFIX=federatedai
-ARG SOURCE_TAG=1.5.0-release
+ARG SOURCE_PREFIX=zsszai
+ARG SOURCE_TAG=2.4.8
 FROM ${SOURCE_PREFIX}/spark-base:${SOURCE_TAG}
 
 COPY master.sh /
