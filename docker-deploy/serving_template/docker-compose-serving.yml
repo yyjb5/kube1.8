@@ -1,0 +1,65 @@
+########################################################
+# Copyright 2019-2020 VMware, Inc. #
+# SPDX-License-Identifier: Apache-2.0                  #
+########################################################
+
+version: '3'
+
+networks:
+  fate-serving-network:
+    external:
+      name: <fate-network>
+services:
+  serving-server:
+    image: "federatedai/serving-server:${SERVING_TAG}"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./confs/serving-server/conf/serving-server.properties:/data/projects/fate/serving-server/conf/serving-server.properties
+      - ./confs/serving-server/cache:/data/projects/fate/serving-server/.fate
+    networks:
+      - fate-serving-network
+
+  serving-proxy:
+    image: "federatedai/serving-proxy:${SERVING_TAG}"
+    ports:
+      - "8059:8059"
+      - "8869:8869"
+    expose:
+      - 8879
+    volumes:
+      - ./confs/serving-proxy/conf/application.properties:/data/projects/fate/serving-proxy/conf/application.properties
+      - ./confs/serving-proxy/conf/route_table.json:/data/projects/fate/serving-proxy/conf/route_table.json
+    networks:
+      - fate-serving-network
+
+  redis:
+    image: "redis:5"
+    expose:
+      - 6379
+    command: redis-server --requirepass <redis.password>
+    volumes:
+      - ./confs/redis/data:/data
+    networks:
+      - fate-serving-network
+
+  serving-zookeeper:
+    image: "bitnami/zookeeper:3.7.0"
+    ports:
+      - "2181:2181"
+      - "2888"
+      - "3888"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    networks:
+      - fate-serving-network
+
+  serving-admin:
+    image: "federatedai/serving-admin:${SERVING_TAG}"
+    ports:
+      - "8350:8350"
+    volumes:
+      - ./confs/serving-admin/conf/application.properties:/data/projects/fate/serving-admin/conf/application.properties
+    command: /bin/sh -c "java -cp conf/:lib/*:fate-serving-admin.jar com.webank.ai.fate.serving.admin.Bootstrap -c conf/application.properties"
+    networks:
+      - fate-serving-network

@@ -1,0 +1,152 @@
+# Copyright 2019-2020 VMware, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# you may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+version: "3"
+
+networks:
+  fate-network:
+    ipam:
+      config:
+        - subnet: 192.167.0.0/16
+
+volumes:
+  fate_flow_logs:
+  download_dir:
+  shared_dir_examples:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: <path-to-host-dir>/examples
+  shared_dir_federatedml:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: <path-to-host-dir>/federatedml
+  shared_dir_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: <path-to-host-dir>/data
+
+services:
+  fateboard:
+    image: "federatedai/fateboard:${TAG}"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./confs/fateboard/conf:/data/projects/fate/fateboard/conf
+      - fate_flow_logs:/data/projects/fate/fateflow/logs
+    restart: always
+    networks:
+      - fate-network
+    depends_on:
+      - python
+
+  python:
+    image: "federatedai/python-spark:${TAG}"
+    restart: always
+    ports:
+      - 9380:9380
+      - 9360:9360
+    volumes:
+      - ./confs/spark/spark-defaults.conf:/data/projects/spark-2.4.1-bin-hadoop2.7/conf/spark-defaults.conf
+      - ./confs/fate_flow/conf:/data/projects/fate/conf
+      - shared_dir_federatedml:/data/projects/fate/fate/python/federatedml
+      - shared_dir_examples:/data/projects/fate/examples
+      - download_dir:/data/projects/fate/python/download_dir
+      - fate_flow_logs:/data/projects/fate/fateflow/logs
+      - ./shared_dir/data/model_local_cache:/data/projects/fate/fateflow/model_local_cache
+    networks:
+      fate-network:
+        ipv4_address: 192.167.0.100
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-X POST", "http://192.167.0.100:9380/v1/version/get"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command:
+    - "/bin/bash"
+    - "-c"
+    - |
+        set -x
+        sleep 5 && python fateflow/python/fate_flow/fate_flow_server.py
+    environment:
+      PYTHONPATH: "$PYTHONPATH:/data/projects/fate/fate/python:/data/projects/fate/eggroll/python:/data/projects/fate/fateflow/python:/data/projects/fate/fate/python/fate_client"
+      FATE_PROJECT_BASE: "/data/projects/fate"
+      FATE_FLOW_UPLOAD_MAX_NUM: "1000000"
+      FATE_FLOW_UPLOAD_MAX_BYTES: "104868093952"
+
+  mysql:
+    image: "mysql:8.0.28"
+    expose:
+      - 3306
+    volumes:
+      - ./confs/mysql/init:/docker-entrypoint-initdb.d/
+      - ./shared_dir/data/mysql:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    networks:
+      - fate-network
+
+  nginx:
+    image: "federatedai/nginx:${TAG}"
+    ports:
+      - 9300:9300
+      - 9310:9310
+    volumes:
+      - ./confs/nginx/route_table.yaml:/data/projects/fate/proxy/nginx/conf/route_table.yaml
+      - ./confs/nginx/nginx.conf:/data/projects/fate/proxy/nginx/conf/nginx.conf
+    restart: always
+    networks:
+      - fate-network
+    depends_on:
+      - python
+
+  pulsar:
+    image: "federatedai/pulsar:2.7.0"
+    ports:
+      - "6650:6650"
+      - "6651:6651"
+      - "8001:8080"
+    deploy:
+      restart_policy:
+        condition: any
+    volumes:
+      - ./confs/pulsar/standalone.conf:/pulsar/conf/standalone.conf
+      - ./shared_dir/data/pulsar:/pulsar/data
+    command:
+      ["/bin/bash", "-c", "bin/pulsar standalone -nss"]
+    restart: always
+    networks:
+      - fate-network
+      
+  client:
+    image: "federatedai/client:${TAG}"
+    ports:
+      - "20000:20000"
+    restart: always
+    environment:
+      FATE_FLOW_IP: "python"
+      FATE_FLOW_PORT: "9380"
+      FATE_SERVING_HOST: "fate-serving:8059"
+    volumes:
+      - download_dir:/data/projects/fate/download_dir
+      - shared_dir_examples:/data/projects/fate/examples
+    depends_on:
+      - python
+    networks:
+      - fate-network

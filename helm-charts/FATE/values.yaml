@@ -1,0 +1,351 @@
+
+image:
+  registry: federatedai
+  isThridParty:
+  tag: 1.8.0-release
+  pullPolicy: IfNotPresent
+  imagePullSecrets: 
+#  - name: 
+  
+partyId: 9999
+partyName: fate-9999
+
+istio:
+  enabled: false
+
+podSecurityPolicy:
+  enabled: false
+
+ingressClassName: nginx
+
+ingress:
+  fateboard:
+    # annotations:
+    hosts:
+    - name: fateboard.example.com
+      path: /
+    tls: []
+    # - secretName: my-tls-secret
+      # hosts:
+        # - fateboard.example.com
+  client:
+    # annotations:
+    hosts:
+    - name: notebook.example.com
+      path: /
+    tls: [] 
+  spark:
+    # annotations:
+    hosts:
+    - name: spark.example.com
+      path: /
+    tls: [] 
+  rabbitmq:
+    # annotations:
+    hosts:
+    - name: rabbitmq.example.com
+      path: /
+    tls: [] 
+  pulsar:
+    # annotations: 
+    hosts:
+    - name:  pulsar.example.com
+      path: /
+    tls: []
+    
+exchange:
+  partyIp: 192.168.1.1
+  partyPort: 30001
+
+exchangeList:
+- id: 9991
+  ip: 192.168.1.1
+  port: 30910
+
+partyList:
+- partyId: 8888
+  partyIp: 192.168.8.1
+  partyPort: 30081
+- partyId: 10000
+  partyIp: 192.168.10.1
+  partyPort: 30101
+
+persistence:
+  enabled: false
+
+modules:
+  rollsite: 
+    include: true
+    ip: rollsite
+    type: ClusterIP
+    nodePort: 30091
+    loadBalancerIP: 
+    nodeSelector:
+    tolerations:
+    affinity:
+    polling:
+      enabled: false
+      
+      # type: client
+      # server:
+        # ip: 192.168.9.1
+        # port: 9370
+      
+      # type: server
+      # clientList:
+      # - partID: 9999
+      # concurrency: 50
+      
+  lbrollsite:
+    include: true
+    ip: rollsite
+    type: ClusterIP
+    nodePort: 30091
+    loadBalancerIP: 
+    size: "2M"
+    nodeSelector:
+    tolerations:
+    affinity:
+  python: 
+    include: true
+    type: ClusterIP
+    httpNodePort: 30097
+    grpcNodePort: 30092
+    loadBalancerIP: 
+    serviceAccountName: 
+    nodeSelector:
+    tolerations:
+    affinity:
+    backend: eggroll
+    enabledNN: false
+    logLevel: INFO
+    # subPath: ""
+    existingClaim: ""
+    claimName: python-data
+    storageClass: "python"
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    clustermanager:
+      cores_per_node: 16
+      nodes: 2
+    spark: 
+      cores_per_node: 20
+      nodes: 2
+      master: spark://spark-master:7077
+      driverHost: fateflow
+      driverHostType: 
+      portMaxRetries: 
+      driverStartPort: 
+      blockManagerStartPort: 
+      pysparkPython: 
+    hdfs:
+      name_node: hdfs://namenode:9000
+      path_prefix:
+    rabbitmq:
+      host: rabbitmq
+      mng_port: 15672
+      port: 5672
+      user: fate
+      password: fate
+    pulsar:
+      host: pulsar
+      mng_port: 8080
+      port: 6650
+    nginx:
+      host: nginx
+      http_port: 9300
+      grpc_port: 9310
+  client:
+    include: true
+    ip: client
+    type: ClusterIP
+    nodeSelector:
+    tolerations:
+    affinity:
+    subPath: "client"
+    existingClaim: ""
+    storageClass: "nodemanager-0"
+    accessMode: ReadWriteOnce
+    size: 1Gi
+  clustermanager: 
+    include: true
+    ip: clustermanager
+    type: ClusterIP
+    nodeSelector:
+    tolerations:
+    affinity:
+  nodemanager:  
+    include: true
+    list:
+    - name: nodemanager-0
+      nodeSelector:
+      tolerations:
+      affinity:
+      sessionProcessorsPerNode: 2
+      subPath: "nodemanager-0"
+      existingClaim: ""
+      storageClass: "nodemanager-0"
+      accessMode: ReadWriteOnce
+      size: 1Gi
+    - name: nodemanager-1
+      nodeSelector:
+      tolerations:
+      affinity:
+      sessionProcessorsPerNode: 2
+      subPath: "nodemanager-1"
+      existingClaim: ""
+      storageClass: "nodemanager-1"
+      accessMode: ReadWriteOnce
+      size: 1Gi
+
+  client: 
+    include: true
+    ip: client
+    type: ClusterIP
+    nodeSelector:
+    tolerations:
+    affinity:
+    subPath: "client"
+    existingClaim: ""
+    storageClass: "client"
+    accessMode: ReadWriteOnce
+    size: 1Gi
+
+  mysql: 
+    include: true
+    type: ClusterIP
+    nodeSelector:
+    tolerations:
+    affinity:
+    ip: mysql
+    port: 3306
+    database: eggroll_meta
+    user: fate
+    password: fate_dev
+    subPath: "mysql"
+    existingClaim: ""
+    claimName: mysql-data
+    storageClass: "mysql"
+    accessMode: ReadWriteOnce
+    size: 1Gi
+  serving:
+    ip: 192.168.9.1
+    port: 30095
+    useRegistry: false
+    zookeeper:
+      hosts:
+        - serving-zookeeper.fate-serving-9999:2181
+      use_acl: false
+  fateboard:
+    include: true
+    type: ClusterIP
+    username: admin
+    password: admin
+
+  spark:
+    include: true
+    master:
+      Image: ""
+      ImageTag: ""
+      replicas: 1
+      nodeSelector:
+      tolerations:
+      affinity:
+      type: ClusterIP
+      nodePort: 30977
+    worker:
+      Image: ""
+      ImageTag: ""
+      replicas: 2
+      resources:
+        requests:
+          cpu: "2"
+          memory: "4Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+      nodeSelector:
+      tolerations:
+      affinity:
+      type: ClusterIP
+  hdfs:
+    include: true
+    namenode:
+      nodeSelector:
+      tolerations:
+      affinity:
+      type: ClusterIP
+      nodePort: 30900
+    datanode:
+      nodeSelector:
+      tolerations:
+      affinity:
+      type: ClusterIP
+  nginx:
+    include: true
+    nodeSelector:
+    tolerations:
+    affinity:
+    type: ClusterIP
+    httpNodePort: 30093
+    grpcNodePort: 30098
+    loadBalancerIP: 
+    exchange:
+      ip: 192.168.10.1
+      httpPort: 30003
+      grpcPort: 30008
+    route_table: 
+#      10000: 
+#        proxy: 
+#        - host: 192.168.10.1 
+#          http_port: 30103
+#          grpc_port: 30108
+#        fateflow:
+#        - host: 192.168.10.1  
+#          http_port: 30107
+#          grpc_port: 30102
+  rabbitmq:
+    include: true
+    nodeSelector:
+    tolerations:
+    affinity:
+    type: ClusterIP
+    nodePort: 30094
+    loadBalancerIP: 
+    default_user: fate
+    default_pass: fate
+    user: fate
+    password: fate
+    route_table: 
+#      10000:
+#        host: 192.168.10.1 
+#        port: 30104
+
+  pulsar:
+    include: true
+    nodeSelector:
+    tolerations:
+    affinity:
+    type: ClusterIP
+    httpNodePort: 30094
+    httpsNodePort: 30099
+    loadBalancerIP: 
+    publicLB:
+      enabled: false
+    # exchange:
+      # ip: 192.168.10.1
+      # port: 30000
+      # domain: fate.org
+    route_table: 
+#      10000:
+#        host: 192.168.10.1
+#        port: 30104
+#        sslPort: 30109
+#        proxy: ""
+#   
+
+# externalMysqlIp: mysql
+# externalMysqlPort: 3306
+# externalMysqlDatabase: eggroll_meta
+# externalMysqlUser: fate
+# externalMysqlPassword: fate_dev
