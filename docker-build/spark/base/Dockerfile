@@ -1,6 +1,6 @@
 # Refer to https://github.com/big-data-europe/docker-spark/tree/2.4.1-hadoop2.7/base
-ARG SOURCE_PREFIX=federatedai
-ARG SOURCE_TAG=1.8.0-release
+ARG SOURCE_PREFIX=yyjb5
+ARG SOURCE_TAG=1.8
 FROM ${SOURCE_PREFIX}/python:${SOURCE_TAG}
 
 ENV ENABLE_INIT_DAEMON true

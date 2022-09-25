@@ -15,10 +15,10 @@
 set -e
 
 if [ -z "$IMG_TAG" ]; then
-        IMG_TAG=latest
+        IMG_TAG=1.8
 fi
 if [ -z "$PREFIX" ]; then
-        PREFIX=federatedai
+        PREFIX=yyjb5
 fi
 
 source .env
