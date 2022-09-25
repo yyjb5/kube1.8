@@ -1,4 +1,4 @@
-name: Push fate images to DockerHub
+name: Push my fate images to DockerHub
 
 on:
   workflow_dispatch:
