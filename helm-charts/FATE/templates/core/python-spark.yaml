@@ -126,8 +126,8 @@ spec:
                 # fix fateflow conf must use IP
                 sed -i "s/host: fateflow/host: ${POD_IP}/g" /data/projects/fate/conf/service_conf.yaml
                 
-                cp /data/projects/spark-2.4.1-bin-hadoop2.7/conf/spark-defaults-template.conf /data/projects/spark-2.4.1-bin-hadoop2.7/conf/spark-defaults.conf
-                sed -i "s/fateflow/${POD_IP}/g" /data/projects/spark-2.4.1-bin-hadoop2.7/conf/spark-defaults.conf
+                cp /data/projects/spark-2.4.8-bin-hadoop2.7/conf/spark-defaults-template.conf /data/projects/spark-2.4.8-bin-hadoop2.7/conf/spark-defaults.conf
+                sed -i "s/fateflow/${POD_IP}/g" /data/projects/spark-2.4.8-bin-hadoop2.7/conf/spark-defaults.conf
                 
                 # logs
                 mkdir -p /data/projects/fate/fateflow/logs/fate_flow/
@@ -167,7 +167,7 @@ spec:
               subPath: logs
             - mountPath: /data/projects/fate/conf-tmp/
               name: python-confs
-            - mountPath: /data/projects/spark-2.4.1-bin-hadoop2.7/conf/spark-defaults-template.conf
+            - mountPath: /data/projects/spark-2.4.8-bin-hadoop2.7/conf/spark-defaults-template.conf
               name: python-confs
               subPath: spark-defaults.conf
             {{- if eq .Values.modules.python.backend "spark_rabbitmq" }}

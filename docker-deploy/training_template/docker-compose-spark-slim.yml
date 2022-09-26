@@ -61,7 +61,7 @@ services:
       - 9380:9380
       - 9360:9360
     volumes:
-      - ./confs/spark/spark-defaults.conf:/data/projects/spark-2.4.1-bin-hadoop2.7/conf/spark-defaults.conf
+      - ./confs/spark/spark-defaults.conf:/data/projects/spark-2.4.8-bin-hadoop2.7/conf/spark-defaults.conf
       - ./confs/fate_flow/conf:/data/projects/fate/conf
       - shared_dir_federatedml:/data/projects/fate/fate/python/federatedml
       - shared_dir_examples:/data/projects/fate/examples
